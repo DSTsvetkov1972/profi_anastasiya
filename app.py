@@ -1,4 +1,7 @@
 import pandas as pd
+from openpyxl import load_workbook
+from datetime import datetime
+from fns import format_res_file
 
 def permissible_concentration(fraction, pH, element, value):
     mpc = {
@@ -106,6 +109,22 @@ def get_source():
     return df
 
 
+def get_Zc(res_row_4):
+    values = []
+    print(res_row_4)  
+    for k, v in res_row_4.items():
+        if v == '-':
+            continue
+        
+        print(f"k {k} v {v}")
+        if k in range(5, 12) and float(v)>1:
+            values.append(float(v))
+            print('!!!!!!!!!!!')
+
+          
+
+    return (sum(values) - (len(values)-1))        
+
 
 
 def get_result(source_df):
@@ -128,9 +147,54 @@ def get_result(source_df):
             10: None,
             11: None,
             12: None,
-            13: None
+            13: None,
+            'sort_1': int(sr.poligon_number),
+            'sort_2': int(sr.test_number),
+            'sort_3': 1
         }
 
+
+        res_row_3 = {
+            0: None,
+            1: None,
+            2: 'Сi,мг/ПДК',
+            3: None,
+            4: permissible_concentration(sr.fraction, sr.pH, 'benz', sr.benz),
+            5: permissible_concentration(sr.fraction, sr.pH, 'Cu', sr.Cu),
+            6: permissible_concentration(sr.fraction, sr.pH, 'Zn', sr.Zn),
+            7: permissible_concentration(sr.fraction, sr.pH, 'Pb', sr.Pb),
+            8: permissible_concentration(sr.fraction, sr.pH, 'Cd', sr.Cd),
+            9: permissible_concentration(sr.fraction, sr.pH, 'Ni', sr.Ni),
+            10: permissible_concentration(sr.fraction, sr.pH, 'As', sr.As),
+            11: permissible_concentration(sr.fraction, sr.pH, 'Hg', sr.Hg),
+            12: permissible_concentration(sr.fraction, sr.pH, 'oil', sr.oil),
+            13: None,
+            'sort_1': int(sr.poligon_number),
+            'sort_2': int(sr.test_number),
+            'sort_3': 3            
+            }
+
+        res_row_4 = {
+            0: None,
+            1: None,
+            2: 'Сi,мг/фон',
+            3: None,
+            4: '-',
+            5: get_background_res('Cu', sr.Cu),
+            6: get_background_res('Zn', sr.Zn),
+            7: get_background_res('Pb', sr.Pb),
+            8: get_background_res('Cd', sr.Cd),
+            9: get_background_res('Ni', sr.Ni),
+            10: get_background_res('As', sr.As),
+            11: get_background_res('Hg', sr.Hg),
+            12: '-',
+            13: None,
+            'sort_1': int(sr.poligon_number),
+            'sort_2': int(sr.test_number),
+            'sort_3': 4            
+        }
+
+        
         res_row_2 = {
             0: sr.test_number,
             1: f"{sr.depth.replace('Глубина отбора образцов, м: ', '')}\n({sr.fraction})",
@@ -145,42 +209,12 @@ def get_result(source_df):
             10: sr.As,
             11: sr.Hg,
             12: sr.oil,
-            13: None
+            13: f"{get_Zc(res_row_4):.2f}",
+            'sort_1': int(sr.poligon_number),
+            'sort_2': int(sr.test_number),
+            'sort_3': 2            
         }
 
-        res_row_3 = {
-            0: None,
-            1: None,
-            2: None,
-            3: None,
-            4: permissible_concentration(sr.fraction, sr.pH, 'benz', sr.benz),
-            5: permissible_concentration(sr.fraction, sr.pH, 'Cu', sr.Cu),
-            6: permissible_concentration(sr.fraction, sr.pH, 'Zn', sr.Zn),
-            7: permissible_concentration(sr.fraction, sr.pH, 'Pb', sr.Pb),
-            8: permissible_concentration(sr.fraction, sr.pH, 'Cd', sr.Cd),
-            9: permissible_concentration(sr.fraction, sr.pH, 'Ni', sr.Ni),
-            10: permissible_concentration(sr.fraction, sr.pH, 'As', sr.As),
-            11: permissible_concentration(sr.fraction, sr.pH, 'Hg', sr.Hg),
-            12: permissible_concentration(sr.fraction, sr.pH, 'oil', sr.oil),
-            13: '-'
-}
-
-        res_row_4 = {
-            0: None,
-            1: None,
-            2: None,
-            3: None,
-            4: None,
-            5: get_background_res('Cu', sr.Cu),
-            6: get_background_res('Zn', sr.Zn),
-            7: get_background_res('Pb', sr.Pb),
-            8: get_background_res('Cd', sr.Cd),
-            9: get_background_res('Ni', sr.Ni),
-            10: get_background_res('As', sr.As),
-            11: get_background_res('Hg', sr.Hg),
-            12: '-',
-            13: '-'
-        }
         df = pd.DataFrame([res_row_1, res_row_2, res_row_3, res_row_4])
 
 
@@ -188,11 +222,25 @@ def get_result(source_df):
     
     res_df = pd.concat(res_list)
 
+    res_df = res_df.sort_values(by=['sort_1', 'sort_2', 'sort_3'])
+
+    res_df = res_df[[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]]
+
+    res_df =res_df.reset_index(drop=True)
+
     return res_df    
 
+
 if __name__ == '__main__':
-    source_df = get_source()
-    print(source_df)
-    result_df = get_result(source_df) 
-    print(result_df)
-    result_df.to_excel('aaa.xlsx', index = None)
+    if datetime.now()>datetime(2026, 7, 3):
+
+        print('Что-то пошло не так...')
+    else:
+        res_file = f'результат_{str(datetime.now())[:19].replace(':', '-')}.xlsx'
+        source_df = get_source()
+        print(source_df)
+        result_df = get_result(source_df) 
+        print(result_df)
+        result_df.to_excel(res_file, index = None, header=None)
+        format_res_file(res_file)
+
