@@ -1,6 +1,6 @@
 import pandas as pd
 
-def get_mpc(fraction, element, value):
+def permissible_concentration(fraction, pH, element, value):
     mpc = {
         'песок/суспесь': {
             'pH': None, 
@@ -12,7 +12,7 @@ def get_mpc(fraction, element, value):
             'Ni': 20,
             'As': 2,
             'Hg': 2.1,
-            'oil': 1,     
+            'oil': 1000,     
         },
         'суглинок, pH<=5,5': {
             'pH': None, 
@@ -24,7 +24,7 @@ def get_mpc(fraction, element, value):
             'Ni': 40,
             'As': 5,
             'Hg': 2.1,
-            'oil': 1,     
+            'oil': 1000,     
         },
         'суглинок, pH>5,5': {
             'pH': None, 
@@ -36,12 +36,25 @@ def get_mpc(fraction, element, value):
             'Ni': 80,
             'As': 10,
             'Hg': 2.1,
-            'oil': 1,     
+            'oil': 1000.0,     
         }
     }
 
-def get_pv(element, value):    
-    bv = {
+    if '<' in value:
+        return '-'
+    elif 'песок' in fraction or 'супесь' in fraction:
+        return f"{float(value.replace(',', '.'))/mpc['песок/суспесь'].get(element):.3f}"
+           
+    elif 'суглинок' in fraction and float(pH.replace(',', '.'))<=5.5:
+        return f"{float(value.replace(',', '.'))/mpc['суглинок, pH<=5,5'].get(element):.3f}"
+
+    elif 'суглинок' in fraction and float(pH.replace(',', '.'))>5.5:
+        return f"{float(value.replace(',', '.'))/mpc['суглинок, pH>5,5'].get(element):.3f}"
+
+
+
+def get_background_res(element, value):    
+    background_res_dict = {
         'pH': None, 
         'benz': None,
         'Cu': 18,
@@ -54,11 +67,12 @@ def get_pv(element, value):
         'oil': None,     
         }
 
-
-
-
-
-
+    value = str(value)
+    if '<' in value:
+        return '-'
+    else:
+        background_res = background_res_dict.get(element)
+        return str(round(float(value.replace(',', '.'))/background_res, 3))
 
 def get_source():
 
@@ -86,7 +100,7 @@ def get_source():
 
     df['depth'] = df.apply(lambda row: row['test_number'] if row['poligon_number']!=row['poligon_number'] else None, axis=1)
     df['depth']= df['depth'].ffill()
-    df['depth']= df.apply(lambda row: f"{row['depth'].replace('Глубина отбора образцов, м: ', '')}\n({row['fraction']})" , axis=1)
+    #df['fraction']= df.apply(lambda row: f"{row['depth'].replace('Глубина отбора образцов, м: ', '')}\n({row['fraction']})" , axis=1)
     df = df[df['poligon_number']== df['poligon_number']]
 
     return df
@@ -102,6 +116,7 @@ def get_result(source_df):
           
         res_row_1 = {
             0: f"Пробная площадка № {sr.poligon_number} (ПП{sr.poligon_number})",
+            1: None,
             2: None,
             3: None,
             4: None,
@@ -113,47 +128,61 @@ def get_result(source_df):
             10: None,
             11: None,
             12: None,
-            13: None,
-            14: None
+            13: None
         }
 
         res_row_2 = {
             0: sr.test_number,
-            2: f"{sr.depth}\n{sr.fraction}",
-            3: 'Сi,мг/кг',
-            4: sr.pH,
-            5: sr.benz,
-            6: sr.Cu,
-            7: sr.Zn,
-            8: sr.Pb,
-            9: sr.Cd,
-            10: sr.Ni,
-            11: sr.As,
-            12: sr.Hg,
-            13: sr.oil,
-            14: None
+            1: f"{sr.depth.replace('Глубина отбора образцов, м: ', '')}\n({sr.fraction})",
+            2: 'Сi,мг/кг',
+            3: sr.pH,
+            4: sr.benz,
+            5: sr.Cu,
+            6: sr.Zn,
+            7: sr.Pb,
+            8: sr.Cd,
+            9: sr.Ni,
+            10: sr.As,
+            11: sr.Hg,
+            12: sr.oil,
+            13: None
         }
 
         res_row_3 = {
-            0: sr.test_number,
-            2: f"{sr.depth}\n{sr.fraction}",
-            3: 'Сi,мг/кг',
-            4: sr.pH,
-            5: sr.benz,
-            6: sr.Cu,
-            7: sr.Zn,
-            8: sr.Pb,
-            9: sr.Cd,
-            10: sr.Ni,
-            11: sr.As,
-            12: sr.Hg,
-            13: sr.oil,
-            14: None
+            0: None,
+            1: None,
+            2: None,
+            3: None,
+            4: permissible_concentration(sr.fraction, sr.pH, 'benz', sr.benz),
+            5: permissible_concentration(sr.fraction, sr.pH, 'Cu', sr.Cu),
+            6: permissible_concentration(sr.fraction, sr.pH, 'Zn', sr.Zn),
+            7: permissible_concentration(sr.fraction, sr.pH, 'Pb', sr.Pb),
+            8: permissible_concentration(sr.fraction, sr.pH, 'Cd', sr.Cd),
+            9: permissible_concentration(sr.fraction, sr.pH, 'Ni', sr.Ni),
+            10: permissible_concentration(sr.fraction, sr.pH, 'As', sr.As),
+            11: permissible_concentration(sr.fraction, sr.pH, 'Hg', sr.Hg),
+            12: permissible_concentration(sr.fraction, sr.pH, 'oil', sr.oil),
+            13: '-'
+}
+
+        res_row_4 = {
+            0: None,
+            1: None,
+            2: None,
+            3: None,
+            4: None,
+            5: get_background_res('Cu', sr.Cu),
+            6: get_background_res('Zn', sr.Zn),
+            7: get_background_res('Pb', sr.Pb),
+            8: get_background_res('Cd', sr.Cd),
+            9: get_background_res('Ni', sr.Ni),
+            10: get_background_res('As', sr.As),
+            11: get_background_res('Hg', sr.Hg),
+            12: '-',
+            13: '-'
         }
+        df = pd.DataFrame([res_row_1, res_row_2, res_row_3, res_row_4])
 
-        df = pd.DataFrame([res_row_1, res_row_2])
-
-        print(df)
 
         res_list.append(df)
     
@@ -163,5 +192,7 @@ def get_result(source_df):
 
 if __name__ == '__main__':
     source_df = get_source()
+    print(source_df)
     result_df = get_result(source_df) 
     print(result_df)
+    result_df.to_excel('aaa.xlsx', index = None)
