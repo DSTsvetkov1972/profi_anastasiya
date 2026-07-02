@@ -238,12 +238,12 @@ def get_result(source_df):
 
 
 if __name__ == '__main__':
-    if datetime.now()>datetime(2026, 7, 3):
+    #if datetime.now()>datetime(2026, 7, 3):
 
-        print('Что-то пошло не так...')
-        while True:
-            pass
-    else:
+    #    print('Что-то пошло не так...')
+    #    while True:
+    #        pass
+    #else:
         res_file = f'результат_{str(datetime.now())[:19].replace(':', '-')}.xlsx'
         source_df = get_source()
         #print(source_df)
