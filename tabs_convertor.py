@@ -1,5 +1,4 @@
 import pandas as pd
-from openpyxl import load_workbook
 from datetime import datetime
 from fns import format_res_file
 
@@ -39,7 +38,7 @@ def permissible_concentration(fraction, pH, element, value):
             'Ni': 80,
             'As': 10,
             'Hg': 2.1,
-            'oil': 1000.0,     
+            'oil': 1000,     
         }
     }
 
@@ -75,7 +74,10 @@ def get_background_res(element, value):
         return '-'
     else:
         background_res = background_res_dict.get(element)
-        return str(round(float(value.replace(',', '.'))/background_res, 3))
+        #return f"{(float(value.replace(',', '.'))/background_res):.f3}"
+        res = float(value.replace(',', '.'))/background_res
+        return f"{res:.3f}"
+
 
 def get_source():
 
@@ -111,16 +113,12 @@ def get_source():
 
 def get_Zc(res_row_4):
     values = []
-    print(res_row_4)  
     for k, v in res_row_4.items():
         if v == '-':
             continue
         
-        print(f"k {k} v {v}")
         if k in range(5, 12) and float(v)>1:
             values.append(float(v))
-            print('!!!!!!!!!!!')
-
           
 
     return (sum(values) - (len(values)-1))        
@@ -131,7 +129,7 @@ def get_result(source_df):
 
     res_list = []
     for sr in source_df.itertuples():
-        print(sr)
+
           
         res_row_1 = {
             0: f"Пробная площадка № {sr.poligon_number} (ПП{sr.poligon_number})",
@@ -238,9 +236,9 @@ if __name__ == '__main__':
     else:
         res_file = f'результат_{str(datetime.now())[:19].replace(':', '-')}.xlsx'
         source_df = get_source()
-        print(source_df)
+        #print(source_df)
         result_df = get_result(source_df) 
-        print(result_df)
+        #print(result_df)
         result_df.to_excel(res_file, index = None, header=None)
         format_res_file(res_file)
 

@@ -2,3 +2,6 @@
 __pycache__
 !исходник.xlsx
 *.xlsx
+.venv
+output/
+test.py
