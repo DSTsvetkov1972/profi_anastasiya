@@ -254,7 +254,6 @@ def format_res_file(res_file):
 
         if first_cell_row_value==1:
            
-            # Объединяем ячейки от (row, start_col) до (row, end_col)
             ws.merge_cells(
                 start_row=row, start_column=1,
                 end_row=row, end_column=ws.max_column-2)
@@ -288,28 +287,11 @@ def format_res_file(res_file):
                 if not '0.' in str(cell_to_format.value) and cell_to_format.value != '-':
                     cell_to_format.fill = PatternFill(start_color='F7CAAC', end_color='F7CAAC', fill_type='solid')    
 
-            
-
-   
-            
-    poligon_number = ''
-    
-    #for row in range(1, ws.max_row+1):
-    #    first_cell_row_value = ws.cell(column=1, row=row).value 
-    #    if poligon_number == first_cell_row_value:
-    #        #ws.delete_rows(row+1)
-    #        wb.save(res_file)
-    #    else:
-    #        poligon_number = first_cell_row_value 
-
-
-    ##FFE599
-    #F7CAAC
     for row in ws.iter_rows():
         for cell in row:
             cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
 
 
-    ws.delete_cols(14, 2)
+    ws.delete_cols(15, 2)
     
     wb.save(res_file)
