@@ -76,6 +76,6 @@ def format_res_file(res_file):
             cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
 
 
-
+    ws.delete_cols(14, 2)
     
     wb.save(res_file)
