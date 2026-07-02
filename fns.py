@@ -16,42 +16,41 @@ def format_res_file(res_file):
                 cell_to_format.value = cell_to_format.value.replace('.', ',')
 
 
-        first_cell_row_value = ws.cell(column=1, row=row).value 
+        first_cell_row_value = ws.cell(column=15, row=row).value 
 
-        if 'Пробная' in str(first_cell_row_value):
+        if first_cell_row_value==1:
            
             # Объединяем ячейки от (row, start_col) до (row, end_col)
             ws.merge_cells(
                 start_row=row, start_column=1,
-                end_row=row, end_column=ws.max_column)
-
+                end_row=row, end_column=ws.max_column-2)
+        
+        if first_cell_row_value==2:
             ws.merge_cells(
-                start_row=row+1, start_column=1,
-                end_row=row+3, end_column=1)
+                start_row=row, start_column=1,
+                end_row=row+2, end_column=1)
             
             ws.merge_cells(
-                start_row=row+1, start_column=2,
-                end_row=row+3, end_column=2)
-            
-                        
-            ws.merge_cells(
-                start_row=row+1, start_column=4,
-                end_row=row+3, end_column=4)
+                start_row=row, start_column=2,
+                end_row=row+2, end_column=2)
             
                         
             ws.merge_cells(
-                start_row=row+1, start_column=14,
-                end_row=row+3, end_column=14)
+                start_row=row, start_column=4,
+                end_row=row+2, end_column=4)
+            
+                        
+            ws.merge_cells(
+                start_row=row, start_column=14,
+                end_row=row+2, end_column=14)
             
             # Раскрашиваем ячейки
             for col in range(5, 14):
-                cell_to_format = ws.cell(column=col, row=row+3)
-                print(cell_to_format.value, '0,' in str(cell_to_format.value))
+                cell_to_format = ws.cell(column=col, row=row+2)
                 if not '0.' in str(cell_to_format.value) and cell_to_format.value != '-':
                     cell_to_format.fill = PatternFill(start_color='FFE599', end_color='FFE599', fill_type='solid')
 
-                cell_to_format = ws.cell(column=col, row=row+2)
-                print(cell_to_format.value, '0,' in str(cell_to_format.value))
+                cell_to_format = ws.cell(column=col, row=row+1)
                 if not '0.' in str(cell_to_format.value) and cell_to_format.value != '-':
                     cell_to_format.fill = PatternFill(start_color='F7CAAC', end_color='F7CAAC', fill_type='solid')    
 

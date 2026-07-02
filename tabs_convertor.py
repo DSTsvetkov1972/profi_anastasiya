@@ -146,6 +146,7 @@ def get_result(source_df):
             11: None,
             12: None,
             13: None,
+            'row_number': 1,            
             'sort_1': int(sr.poligon_number),
             'sort_2': int(sr.test_number),
             'sort_3': 1
@@ -167,6 +168,7 @@ def get_result(source_df):
             11: permissible_concentration(sr.fraction, sr.pH, 'Hg', sr.Hg),
             12: permissible_concentration(sr.fraction, sr.pH, 'oil', sr.oil),
             13: None,
+            'row_number': 3,            
             'sort_1': int(sr.poligon_number),
             'sort_2': int(sr.test_number),
             'sort_3': 3            
@@ -187,6 +189,7 @@ def get_result(source_df):
             11: get_background_res('Hg', sr.Hg),
             12: '-',
             13: None,
+            'row_number': 4,            
             'sort_1': int(sr.poligon_number),
             'sort_2': int(sr.test_number),
             'sort_3': 4            
@@ -208,6 +211,7 @@ def get_result(source_df):
             11: sr.Hg,
             12: sr.oil,
             13: f"{get_Zc(res_row_4):.2f}",
+            'row_number': 2,
             'sort_1': int(sr.poligon_number),
             'sort_2': int(sr.test_number),
             'sort_3': 2            
@@ -222,9 +226,13 @@ def get_result(source_df):
 
     res_df = res_df.sort_values(by=['sort_1', 'sort_2', 'sort_3'])
 
-    res_df = res_df[[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]]
+    res_df = res_df[[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 'row_number']]
 
     res_df =res_df.reset_index(drop=True)
+
+    res_df['номер вхождения'] = res_df.groupby(0).cumcount()
+
+    res_df = res_df[((res_df['row_number']==1)&(res_df['номер вхождения'] == 0))|((res_df['row_number']!=1))]
 
     return res_df    
 
@@ -233,12 +241,14 @@ if __name__ == '__main__':
     if datetime.now()>datetime(2026, 7, 3):
 
         print('Что-то пошло не так...')
+        while True:
+            pass
     else:
         res_file = f'результат_{str(datetime.now())[:19].replace(':', '-')}.xlsx'
         source_df = get_source()
         #print(source_df)
         result_df = get_result(source_df) 
-        #print(result_df)
+        print(result_df)
         result_df.to_excel(res_file, index = None, header=None)
         format_res_file(res_file)
 
